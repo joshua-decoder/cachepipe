@@ -151,7 +151,9 @@ sub cmd {
 	exit 1;
   }
 
-  my ($old_signature,@old_sigs);
+  # define this to avoid complaints about comparisons to undefined strings
+  my $old_signature = "";
+  my @old_sigs;
 
   if (! -d $dir) {
 	# if no caching has ever been done
@@ -214,6 +216,12 @@ sub cmd {
   }
 
   my ($new_signature,$cmdsig,@sigs) = build_signatures($cmd,@deps);
+
+  # fill up @old_sigs so its as long as @sigs (to avoid complaints
+  # about undefined comparisons)
+  while (@old_sigs < @sigs) {
+	push(@old_sigs, "");
+  }
 
   if ($old_signature ne $new_signature) {
 	my $message = ($cache_only) ? "recaching" : "rebuilding";
