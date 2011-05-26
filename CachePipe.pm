@@ -23,12 +23,6 @@ use IO::Handle;
 # use Digest::SHA1;
 # use Memoize;
 
-# my $basedir;
-# BEGIN {
-#   $basedir = $ENV{CACHEPIPE};
-#   unshift @INC, $basedir;
-# }
-
 # constructor
 sub new {
   my $class = shift;
@@ -38,6 +32,7 @@ sub new {
 	dir     => ".cachepipe",
 	basedir => $ENV{PWD},
 	retval  => 0,  # expected return value
+	running => "",
 	email   => undef,
   };
 
@@ -47,6 +42,17 @@ sub new {
   STDERR->autoflush(1);
 
   return $self;
+}
+
+# cleanup
+sub cleanup {
+  my ($self) = @_;
+
+  if ($self->{running}) {
+	my $file = "$self->{dir}/$self->{running}/running";
+	print "CLEANUP: removing file '$file'\n";
+	unlink($file);
+  }
 }
 
 # static version of cmd()
@@ -147,7 +153,7 @@ sub cmd {
   my $namedir = "$dir/$name";
 
   if (-e "$namedir/running") {
-	$self->mylog("[$name] already running, skipping...");
+	$self->mylog("[$name] already running, QUITTING...");
 	exit 1;
   }
 
@@ -224,6 +230,7 @@ sub cmd {
   }
 
   if ($old_signature ne $new_signature) {
+
 	my $message = ($cache_only) ? "recaching" : "rebuilding";
 
 	$self->mylog("[$name] $message...");
@@ -231,7 +238,7 @@ sub cmd {
 	  my $dep = $deps[$i];
 
 	  if (-e $dep) {
-		my $diff = ($sigs[$i] eq $old_sigs[$i]) ? "" : "[CHANGED]";
+		my $diff = ($sigs[$i] eq $old_sigs[$i]) ? "" : "[CHANGED] $sigs[$i] $old_sigs[$i]";
 		$self->mylog("  dep=$dep $diff");
 	  } else {
 		$self->mylog("  dep=$dep [NOT FOUND]");
@@ -247,6 +254,7 @@ sub cmd {
 
 	} else {
 	  system("touch $namedir/running");
+	  $self->{running} = $name;
 
 	  my $start_time = time();
 
@@ -273,6 +281,7 @@ sub cmd {
 		write_signature($namedir,$cmd,@deps);
 
 		unlink("$namedir/running");
+		$self->{running} = "";
 
 		my $stop_time = time();
 
