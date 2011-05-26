@@ -238,7 +238,7 @@ sub cmd {
 	  my $dep = $deps[$i];
 
 	  if (-e $dep) {
-		my $diff = ($sigs[$i] eq $old_sigs[$i]) ? "" : "[CHANGED] $sigs[$i] $old_sigs[$i]";
+		my $diff = ($sigs[$i] eq $old_sigs[$i]) ? "" : "[CHANGED]";
 		$self->mylog("  dep=$dep $diff");
 	  } else {
 		$self->mylog("  dep=$dep [NOT FOUND]");
