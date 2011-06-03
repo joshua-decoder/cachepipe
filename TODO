@@ -8,4 +8,6 @@
     when a command got aborted partway through processing a file)
 - [X] it would be nice to be able to re-run individual pipeline commands
   directly from the cache
-- [ ] print warnings when files don't exist
+- [X] print warnings when files don't exist
+- [ ] store the return value of a command; cached instances could then
+  retrieve that value and return it as if they had been called
