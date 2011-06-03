@@ -32,7 +32,8 @@ sub new {
 	dir     => ".cachepipe",
 	basedir => $ENV{PWD},
 	retval  => 0,  # expected return value
-	running => "",
+	running => "", # currently running command
+	lastrun => "", # last command run
 	email   => undef,
   };
 
@@ -113,6 +114,22 @@ sub build_signatures {
   return ($new_signature,$cmdsig,@sigs);
 }
 
+# returns the STDOUT of the last-run command
+sub stdout {
+  my ($self) = @_;
+  
+  my $stdout = "";
+  if ($self->{lastrun} ne "") {
+	my $namedir = $self->{dir} . "/" . $self->{lastrun};
+
+	chomp($stdout = `cat $namedir/out`);
+
+	$self->mylog("[$self->{lastrun}] retrieved cached result => $stdout");
+  }
+  
+  return $stdout;
+}
+
 # Runs a command (if required)
 # name: the (unique) name assigned to this command
 # input_deps: an array ref of input file dependencies
@@ -125,6 +142,8 @@ sub cmd {
   my ($self,$name,@args) = @_;
 
   die "no name provided" unless $name ne "";
+
+  $self->{lastrun} = $name;
 
   my ($cmd,@deps);
   my ($cache_only) = 0;
