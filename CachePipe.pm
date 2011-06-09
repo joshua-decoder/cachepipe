@@ -29,11 +29,12 @@ sub new {
   my %params = @_;
   # default values
   my $self = { 
-	dir     => ".cachepipe",
-	basedir => $ENV{PWD},
-	retval  => 0,  # expected return value
-	running => "", # currently running command
-	lastrun => "", # last command run
+	dir       => ".cachepipe",
+	basedir   => $ENV{PWD},
+	retval    => 0,             # expected return value
+	running   => "",            # currently running command
+	lastrun   => "",            # last command run
+	qsub_args => "",            # qsub args
 	email   => undef,
   };
 
@@ -148,6 +149,7 @@ sub cmd {
   my ($cmd,@deps);
   my ($cache_only) = 0;
   my ($rerun) = 0;
+  my ($use_qsub) = 0;
   while (my $arg = shift @args) {
 	if ($arg =~ /^--/) {
 	  $arg =~ s/^--//;
@@ -156,6 +158,8 @@ sub cmd {
 		$cache_only = 1;
 	  } elsif ($arg eq "rerun") {
 		$rerun = 1;
+	  } elsif ($arg eq "qsub") {
+		$use_qsub = 1;
 	  } else {
 		print STDERR "* FATAL: CachePipe: unknown argument: --$arg\n";
 		exit 1;
@@ -183,8 +187,7 @@ sub cmd {
   if (! -d $dir) {
 	# if no caching has ever been done
 
-	mkdir($dir);
-	mkdir($namedir);
+	system("mkdir","-p",$namedir);
 
   } elsif (! -d $namedir)  {
 	# otherwise, if this command hasn't yet been cached...
@@ -275,6 +278,8 @@ sub cmd {
 	  system("touch $namedir/running");
 	  $self->{running} = $name;
 
+	  write_cmd($namedir,$cmd);
+
 	  my $start_time = time();
 
 	  # run the command
@@ -286,7 +291,11 @@ sub cmd {
 	  open(STDOUT,">$namedir/out") or die;
 	  open(STDERR,">$namedir/err") or die;
 
-	  system($cmd);
+	  if ($use_qsub) {
+		system("qsub $self->{qsub_args} -cwd $namedir/cmd");
+	  } else {
+		system($cmd);
+	  }
 
 	  close(STDOUT);
 	  close(STDERR);
@@ -323,6 +332,14 @@ sub cmd {
 
 	return 0;
   }
+}
+
+sub write_cmd {
+  my ($namedir,$cmd) = @_;
+
+  open(WRITE, ">$namedir/cmd");
+  print WRITE "$cmd\n";
+  close(WRITE);
 }
 
 sub write_signature {
@@ -445,5 +462,12 @@ sub pretty_print_time {
   $timestr .= "${seconds}s";
   return $timestr;
 }
+
+sub qsub_args {
+  my ($self,@args) = @_;
+
+  $self->{qsub_args} = join(" ",@args);
+}
+
 1;
 
