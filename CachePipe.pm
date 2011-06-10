@@ -180,6 +180,11 @@ sub cmd {
 	exit 1;
   }
 
+  if (-e "$namedir/cache-only") {
+	$self->mylog("[$name] 'cache-only' file exists, caching...");
+	$cache_only = 1;
+  }
+
   # define this to avoid complaints about comparisons to undefined strings
   my $old_signature = "";
   my @old_sigs;
