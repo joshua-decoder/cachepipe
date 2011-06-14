@@ -374,16 +374,15 @@ sub write_signature {
 sub sha1hash {
   my ($arg) = @_;
 
-  my $content = time();
   if ($arg =~ /^ENV:/) {
 	my (undef,$env) = split(':',$arg);
-	$content = $ENV{$env} || "";
-	# print STDERR "ENV '$env' $content\n";
+	$content = $ENV{$env} || time();
+	return signature($content);
   } elsif (-f $arg) {
 	  return file_signature($arg);
   }
 
-  return signature($content);
+  return signature($arg);
 }
 
 # Generates a GIT-style signature of a string *without* loading the whole file into memory 
