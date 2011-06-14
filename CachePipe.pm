@@ -379,10 +379,8 @@ sub sha1hash {
 	my (undef,$env) = split(':',$arg);
 	$content = $ENV{$env} || "";
 	# print STDERR "ENV '$env' $content\n";
-  } else {
-	if (-e $arg) {
+  } elsif (-f $arg) {
 	  return file_signature($arg);
-	}
   }
 
   return signature($content);
