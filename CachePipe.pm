@@ -376,7 +376,7 @@ sub sha1hash {
 
   if ($arg =~ /^ENV:/) {
 	my (undef,$env) = split(':',$arg);
-	$content = $ENV{$env} || time();
+	my $content = $ENV{$env} || time();
 	return signature($content);
   } elsif (-f $arg) {
 	  return file_signature($arg);
