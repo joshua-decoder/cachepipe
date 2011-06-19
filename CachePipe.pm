@@ -390,13 +390,11 @@ sub file_signature {
   my ($file) = @_;
 
   if (-e $file) {
-	print STDERR "$file exists\n";
 	my $size = (stat($file))[7];
 	chomp(my $sha1 = `(echo -ne "blob $size\\0"; cat $file) | sha1sum -b | awk '{print \$1}'`);
 
 	return $sha1;
   } else {
-	print STDERR "$file NO exists\n";
 	# if the file doesn't exist, return a signature guaranteed to be
 	# unique, triggering a re-run
 	my $time = time();
