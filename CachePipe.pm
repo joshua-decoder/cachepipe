@@ -378,7 +378,7 @@ sub sha1hash {
 	my (undef,$env) = split(':',$arg);
 	my $content = $ENV{$env} || time();
 	return signature($content);
-  } elsif (-f $arg) {
+  } else {
 	  return file_signature($arg);
   }
 
@@ -389,10 +389,21 @@ sub sha1hash {
 sub file_signature {
   my ($file) = @_;
 
-  my $size = (stat($file))[7];
-  chomp(my $sha1 = `(echo -ne "blob $size\\0"; cat $file) | sha1sum -b | awk '{print \$1}'`);
+  if (-e $file) {
+	print STDERR "$file exists\n";
+	my $size = (stat($file))[7];
+	chomp(my $sha1 = `(echo -ne "blob $size\\0"; cat $file) | sha1sum -b | awk '{print \$1}'`);
 
-  return $sha1;
+	return $sha1;
+  } else {
+	print STDERR "$file NO exists\n";
+	# if the file doesn't exist, return a signature guaranteed to be
+	# unique, triggering a re-run
+	my $time = time();
+	chomp(my $sha1 = `echo $time | sha1sum -b | awk '{print \$1}'`);
+
+	return $sha1;
+  }
 }
 
 
