@@ -299,7 +299,7 @@ sub cmd {
 	  if ($use_qsub) {
 		system("qsub $self->{qsub_args} -cwd $namedir/cmd");
 	  } else {
-		system($cmd);
+		system("/bin/bash","-c",$cmd);
 	  }
 
 	  close(STDOUT);
