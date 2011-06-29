@@ -175,10 +175,11 @@ sub cmd {
   my $dir = $self->{dir};
   my $namedir = "$dir/$name";
 
-  if (-e "$namedir/running") {
-	$self->mylog("[$name] already running, QUITTING...");
-	exit 1;
-  }
+  # This check causes more trouble than it's worth...
+  # if (-e "$namedir/running") {
+  # 	$self->mylog("[$name] already running, QUITTING...");
+  # 	exit 1;
+  # }
 
   if (-e "$namedir/cache-only") {
 	$self->mylog("[$name] 'cache-only' file exists, caching...");
@@ -233,6 +234,10 @@ sub cmd {
 	  }
 	}
 	close (READ);
+  }
+
+  if (! defined $cmd and -e "$namedir/cmd") {
+	chomp($cmd = `cat $namedir/cmd`);
   }
 
   # if caching was requested and no new command provided, make sure we
